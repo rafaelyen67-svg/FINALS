@@ -8,14 +8,7 @@ struct Coffee: Identifiable, Codable {
     let imageName: String
     var isAvailable: Bool
 
-    init(
-        id: UUID = UUID(),
-        name: String,
-        description: String,
-        basePrice: Double,
-        imageName: String,
-        isAvailable: Bool = true
-    ) {
+    init(id: UUID = UUID(), name: String, description: String, basePrice: Double, imageName: String, isAvailable: Bool = true) {
         self.id = id
         self.name = name
         self.description = description

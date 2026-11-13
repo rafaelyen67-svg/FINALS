@@ -4,17 +4,11 @@ struct WelcomeView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                LinearGradient(
-                    colors: [AppTheme.espresso, AppTheme.brown, Color(red: 0.55, green: 0.34, blue: 0.22)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-
+                LinearGradient(colors: [AppTheme.espresso, AppTheme.brown, Color(red: 0.55, green: 0.34, blue: 0.22)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .ignoresSafeArea()
                 Circle()
                     .fill(AppTheme.gold.opacity(0.14))
                     .frame(width: 320, height: 320)
-                    .blur(radius: 2)
                     .offset(x: 150, y: -280)
 
                 VStack(alignment: .leading, spacing: 0) {
@@ -22,20 +16,31 @@ struct WelcomeView: View {
                     Image(systemName: "cup.and.saucer.fill")
                         .font(.system(size: 54, weight: .light))
                         .foregroundStyle(AppTheme.gold)
-                        .padding(.bottom, 28)
-                    Text("SLOW DOWN.\nSIP SOMETHING GOOD.")
-                        .font(.system(size: 13, weight: .bold, design: .rounded))
-                        .tracking(3)
+                        .padding(.bottom, 25)
+                    Text("SLOW DOWN. SIP SOMETHING GOOD.")
+                        .font(.caption.weight(.bold))
+                        .tracking(2.2)
                         .foregroundStyle(AppTheme.gold)
-                        .padding(.bottom, 14)
+                        .padding(.bottom, 12)
                     Text("Militia\nCafé")
                         .font(.system(size: 58, weight: .bold, design: .serif))
                         .lineSpacing(-3)
                         .foregroundStyle(.white)
                     Text("A little comfort, anytime.")
                         .font(.title3.italic())
-                        .foregroundStyle(.white.opacity(0.76))
-                        .padding(.top, 15)
+                        .foregroundStyle(.white.opacity(0.78))
+                        .padding(.top, 12)
+
+                    Image("coffee menu")
+                        .resizable()
+                        .scaledToFill()
+                        .frame(height: 145)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 18))
+                        .overlay(RoundedRectangle(cornerRadius: 18).fill(AppTheme.espresso.opacity(0.15)))
+                        .padding(.top, 24)
+                        .accessibilityLabel("Militia Café coffee menu")
+
                     Spacer()
                     NavigationLink {
                         LoginView()
@@ -53,7 +58,7 @@ struct WelcomeView: View {
                     }
                     .padding(.bottom, 20)
                 }
-                .padding(28)
+                .padding(26)
                 .frame(maxWidth: 540, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
@@ -62,6 +67,4 @@ struct WelcomeView: View {
     }
 }
 
-#Preview {
-    WelcomeView()
-}
+#Preview { WelcomeView() }

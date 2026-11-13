@@ -5,20 +5,11 @@ import Combine
 final class CoffeeController: ObservableObject {
     @Published private(set) var coffees: [Coffee]
 
-    private let storageKey = "militiaCafe.products.v1"
-
     init() {
-        if let data = UserDefaults.standard.data(forKey: storageKey),
-           let saved = try? JSONDecoder().decode([Coffee].self, from: data) {
-            coffees = saved
-        } else {
-            coffees = Self.sampleMenu
-        }
+        coffees = CafeDatabase.load([Coffee].self, from: "products.json", default: Self.sampleMenu)
     }
 
-    var availableCoffees: [Coffee] {
-        coffees.filter(\.isAvailable)
-    }
+    var availableCoffees: [Coffee] { coffees.filter(\.isAvailable) }
 
     func setAvailability(_ isAvailable: Bool, for coffee: Coffee) {
         guard let index = coffees.firstIndex(where: { $0.id == coffee.id }) else { return }
@@ -26,20 +17,29 @@ final class CoffeeController: ObservableObject {
         save()
     }
 
-    func addCoffee(name: String, description: String, price: Double) {
+    func addCoffee(name: String, description: String, price: Double, imageName: String = "latte") {
+        let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !cleanName.isEmpty, price > 0 else { return }
         let coffee = Coffee(
-            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            name: cleanName,
             description: description.trimmingCharacters(in: .whitespacesAndNewlines),
             basePrice: price,
-            imageName: "latte"
+            imageName: imageName
         )
         coffees.insert(coffee, at: 0)
         save()
     }
 
+    func calculatePrice(coffee: Coffee, size: String, topping: String) -> Double {
+        var price = coffee.basePrice
+        if size == "Small" { price -= 20 }
+        if size == "Large" { price += 30 }
+        if topping != "None" { price += 15 }
+        return price
+    }
+
     private func save() {
-        guard let data = try? JSONEncoder().encode(coffees) else { return }
-        UserDefaults.standard.set(data, forKey: storageKey)
+        CafeDatabase.save(coffees, to: "products.json")
     }
 
     private static let sampleMenu: [Coffee] = [

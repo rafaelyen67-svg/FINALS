@@ -1,71 +1,84 @@
-//
-//  CoffeeDetailView.swift
-//  MilitiaCafe
-//
-//  Created by Mac-LAB on 9/17/26.
-//
-
 import SwiftUI
 
 struct CoffeeDetailView: View {
-    
     let coffee: Coffee
-    
+
     var body: some View {
-        
         ScrollView {
-            
             VStack(alignment: .leading, spacing: 18) {
-                
-                Image(coffee.imageName)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(height: 250)
-                    .frame(maxWidth: .infinity)
-                    .clipped()
-                    .clipShape(
-                        RoundedRectangle(cornerRadius: 25)
-                    )
-                
-                Text(coffee.name)
-                    .font(.system(
-                        size: 32,
-                        weight: .bold,
-                        design: .serif
-                    ))
-                    .foregroundStyle(AppTheme.brown)
-                
-                Text(coffee.description)
-                    .foregroundStyle(.secondary)
-                
-                Text(
-                    "₱\(coffee.basePrice, specifier: "%.0f")"
-                )
-                .font(.title2)
-                .bold()
-                .foregroundStyle(AppTheme.brown)
-                
-                NavigationLink("Customize Coffee") {
-                    CoffeeCustomizationView(
-                        coffee: coffee
-                    )
+                ZStack(alignment: .bottomLeading) {
+                    CoffeeProductImage(name: coffee.imageName)
+                        .frame(height: 270)
+                        .clipped()
+                    LinearGradient(colors: [.clear, .black.opacity(0.55)], startPoint: .center, endPoint: .bottom)
+                    Text("BREWED WITH CARE")
+                        .font(.caption.weight(.bold))
+                        .tracking(2)
+                        .foregroundStyle(.white)
+                        .padding(18)
                 }
-                .font(.headline)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(AppTheme.brown)
-                .foregroundStyle(.white)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: 18)
-                )
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+
+                Text(coffee.name)
+                    .font(.system(size: 32, weight: .bold, design: .serif))
+                    .foregroundStyle(AppTheme.espresso)
+                Text(coffee.description)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                HStack {
+                    Label("Made fresh to order", systemImage: "sparkles")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(AppTheme.sage)
+                    Spacer()
+                    Text("₱\(coffee.basePrice, specifier: "%.0f")")
+                        .font(.title2.bold())
+                        .foregroundStyle(AppTheme.brown)
+                }
+                NavigationLink {
+                    CoffeeCustomizationView(coffee: coffee)
+                } label: {
+                    HStack {
+                        Text("Customize your cup")
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .padding(17)
+                    .background(AppTheme.brown)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
             }
-            .padding()
+            .padding(20)
         }
-        .background(
-            AppTheme.cream
-                .ignoresSafeArea()
-        )
+        .background(AppTheme.paper.ignoresSafeArea())
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
+struct CoffeeProductImage: View {
+    let name: String
 
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                AppTheme.cream
+                Image(name)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .clipped()
+                    .overlay {
+                        if UIImage(named: name) == nil {
+                            VStack(spacing: 8) {
+                                Image(systemName: "cup.and.saucer.fill")
+                                    .font(.system(size: 36))
+                                Text("MILITIA CAFÉ").font(.caption2.weight(.bold)).tracking(1.5)
+                            }
+                            .foregroundStyle(AppTheme.gold)
+                        }
+                    }
+            }
+        }
+    }
+}

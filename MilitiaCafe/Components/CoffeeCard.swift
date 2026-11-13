@@ -5,20 +5,9 @@ struct CoffeeCard: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            Image(coffee.imageName)
-                .resizable()
-                .scaledToFill()
+            CoffeeProductImage(name: coffee.imageName)
                 .frame(width: 88, height: 88)
-                .background(AppTheme.cream)
                 .clipShape(RoundedRectangle(cornerRadius: 17))
-                .overlay {
-                    if UIImage(named: coffee.imageName) == nil {
-                        Image(systemName: "cup.and.saucer.fill")
-                            .font(.title2)
-                            .foregroundStyle(AppTheme.gold)
-                    }
-                }
-
             VStack(alignment: .leading, spacing: 6) {
                 Text(coffee.name)
                     .font(.system(size: 19, weight: .bold, design: .serif))
