@@ -1,235 +1,232 @@
-//
-//  QRScannerView.swift
-//  MilitiaCafe
-//
-//  Created by Mac-LAB on 9/17/26.
-//
-
 import SwiftUI
 import AVFoundation
 
 struct QRScannerView: View {
-    
-    @EnvironmentObject var orderController: OrderController
-    
-    @StateObject private var qrController =
-        QRController()
-    
+    @EnvironmentObject private var orderController: OrderController
+    @StateObject private var qrController = QRController()
+    @State private var manualCode = ""
+
     var body: some View {
-        
-        ZStack {
-            
-            Color.black
-                .ignoresSafeArea()
-            
-            VStack {
-                
-                Text("Scan Order QR")
-                    .font(.title)
-                    .bold()
-                    .foregroundStyle(.white)
-                    .padding()
-                
+        ScrollView {
+            VStack(spacing: 18) {
+                VStack(spacing: 7) {
+                    Image(systemName: "qrcode.viewfinder")
+                        .font(.system(size: 35))
+                        .foregroundStyle(AppTheme.gold)
+                    Text("Pickup check-in")
+                        .font(.system(size: 28, weight: .bold, design: .serif))
+                        .foregroundStyle(AppTheme.espresso)
+                    Text("Scan the customer's order QR to find their pickup.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
                 QRScannerCameraView { code in
-                    
-                    qrController.scan(
-                        code: code,
-                        orderController: orderController
-                    )
+                    qrController.scan(code: code, orderController: orderController)
                 }
-                .frame(height: 400)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: 20)
-                )
-                .padding()
-                
+                .frame(height: 310)
+                .clipShape(RoundedRectangle(cornerRadius: 23, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 23)
+                        .stroke(AppTheme.gold.opacity(0.45), lineWidth: 2)
+                        .padding(18)
+                        .allowsHitTesting(false)
+                }
+
                 if let order = qrController.scannedOrder {
-                    
-                    VStack(spacing: 10) {
-                        
-                        Text("Order Found!")
-                            .font(.title2)
-                            .bold()
-                            .foregroundStyle(.green)
-                        
-                        Text("Order #\(order.orderNumber)")
-                            .font(.title3)
-                            .foregroundStyle(.white)
-                        
-                        Text(order.customerName)
-                            .foregroundStyle(.white)
-                        
-                        Text("Ready for pickup")
-                            .foregroundStyle(.white.opacity(0.8))
-                        
-                        NavigationLink("View Order") {
-                            OrderDetailView(
-                                order: order
-                            )
-                        }
-                        .padding()
-                        .background(.white)
-                        .foregroundStyle(AppTheme.brown)
-                        .clipShape(
-                            RoundedRectangle(cornerRadius: 15)
-                        )
-                    }
-                    .padding()
-                    
+                    foundOrder(order)
+                } else if !qrController.scannedCode.isEmpty {
+                    Label("No order found for code: \(qrController.scannedCode)", systemImage: "xmark.circle.fill")
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.red)
                 } else {
-                    
-                    Text(
-                        "Point the camera at the customer's QR code."
-                    )
-                    .foregroundStyle(.white)
-                    .multilineTextAlignment(.center)
-                    .padding()
+                    Text("Camera access is needed to scan. You can also enter the order code below.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 }
-                
+
+                HStack(spacing: 10) {
+                    TextField("Enter order code (e.g. MIL1234)", text: $manualCode)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .padding(13)
+                        .background(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 13))
+                    Button("Find") {
+                        qrController.scan(code: manualCode.trimmingCharacters(in: .whitespacesAndNewlines), orderController: orderController)
+                    }
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 13)
+                    .background(AppTheme.brown)
+                    .clipShape(RoundedRectangle(cornerRadius: 13))
+                }
+
+                if !qrController.scannedCode.isEmpty {
+                    Button {
+                        qrController.clearScan()
+                        manualCode = ""
+                    } label: {
+                        Label("Scan another order", systemImage: "arrow.clockwise")
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(AppTheme.brown)
+                    }
+                    .padding(.top, 2)
+                }
+            }
+            .padding(20)
+            .frame(maxWidth: 560)
+            .frame(maxWidth: .infinity)
+        }
+        .background(AppTheme.paper.ignoresSafeArea())
+        .navigationTitle("QR pickup")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private func foundOrder(_ order: Order) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Order found", systemImage: "checkmark.seal.fill")
+                    .font(.headline)
+                    .foregroundStyle(AppTheme.sage)
                 Spacer()
+                Text(order.status.uppercased())
+                    .font(.caption2.weight(.heavy))
+                    .tracking(0.7)
+                    .foregroundStyle(AppTheme.brown)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(AppTheme.cream)
+                    .clipShape(Capsule())
+            }
+            Text("#\(order.orderNumber)")
+                .font(.system(size: 24, weight: .bold, design: .serif))
+                .foregroundStyle(AppTheme.espresso)
+            Text(order.customerName)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            NavigationLink {
+                OrderDetailView(order: order)
+            } label: {
+                HStack {
+                    Text("View pickup details")
+                    Spacer()
+                    Image(systemName: "arrow.right")
+                }
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.white)
+                .padding(14)
+                .background(AppTheme.brown)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
         }
-        .navigationTitle("Scan Order")
-        .navigationBarTitleDisplayMode(.inline)
+        .padding(17)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 }
 
 struct QRScannerCameraView: UIViewControllerRepresentable {
-    
     let onCodeScanned: (String) -> Void
-    
-    func makeUIViewController(
-        context: Context
-    ) -> ScannerViewController {
-        
+
+    func makeUIViewController(context: Context) -> ScannerViewController {
         let controller = ScannerViewController()
-        
         controller.onCodeScanned = onCodeScanned
-        
         return controller
     }
-    
-    func updateUIViewController(
-        _ uiViewController: ScannerViewController,
-        context: Context
-    ) {
+
+    func updateUIViewController(_ controller: ScannerViewController, context: Context) {
+        controller.resizePreview()
+    }
+
+    static func dismantleUIViewController(_ controller: ScannerViewController, coordinator: ()) {
+        controller.stopCamera()
     }
 }
 
-class ScannerViewController: UIViewController,
-                            AVCaptureMetadataOutputObjectsDelegate {
-    
+final class ScannerViewController: UIViewController, AVCaptureMetadataOutputObjectsDelegate {
     var onCodeScanned: ((String) -> Void)?
-    
     private let session = AVCaptureSession()
+    private var previewLayer: AVCaptureVideoPreviewLayer?
     private var hasScanned = false
-    
+    private var isConfigured = false
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        view.backgroundColor = UIColor(AppTheme.espresso)
         checkCameraPermission()
     }
-    
-    private func checkCameraPermission() {
-        
-        switch AVCaptureDevice.authorizationStatus(
-            for: .video
-        ) {
-            
-        case .authorized:
-            setupCamera()
-            
-        case .notDetermined:
-            
-            AVCaptureDevice.requestAccess(
-                for: .video
-            ) { granted in
-                
-                DispatchQueue.main.async {
-                    
-                    if granted {
-                        self.setupCamera()
-                    }
-                }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        resizePreview()
+    }
+
+    func resizePreview() {
+        previewLayer?.frame = view.bounds
+    }
+
+    func stopCamera() {
+        if session.isRunning {
+            DispatchQueue.global(qos: .userInitiated).async { [session] in
+                session.stopRunning()
             }
-            
+        }
+    }
+
+    private func checkCameraPermission() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            configureAndStart()
+        case .notDetermined:
+            AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
+                guard granted else { return }
+                DispatchQueue.main.async { self?.configureAndStart() }
+            }
         default:
             break
         }
     }
-    
-    private func setupCamera() {
-        
-        guard let camera = AVCaptureDevice.default(
-            for: .video
-        ) else {
-            return
-        }
-        
-        guard let input = try? AVCaptureDeviceInput(
-            device: camera
-        ) else {
-            return
-        }
-        
-        if session.canAddInput(input) {
-            session.addInput(input)
-        }
-        
+
+    private func configureAndStart() {
+        guard !isConfigured,
+              let camera = AVCaptureDevice.default(for: .video),
+              let input = try? AVCaptureDeviceInput(device: camera) else { return }
+
+        session.beginConfiguration()
+        defer { session.commitConfiguration() }
+        guard session.canAddInput(input) else { return }
+        session.addInput(input)
+
         let output = AVCaptureMetadataOutput()
-        
-        if session.canAddOutput(output) {
-            
-            session.addOutput(output)
-            
-            output.setMetadataObjectsDelegate(
-                self,
-                queue: DispatchQueue.main
-            )
-            
-            output.metadataObjectTypes = [
-                .qr
-            ]
+        guard session.canAddOutput(output) else { return }
+        session.addOutput(output)
+        output.setMetadataObjectsDelegate(self, queue: .main)
+        guard output.availableMetadataObjectTypes.contains(.qr) else { return }
+        output.metadataObjectTypes = [.qr]
+
+        let layer = AVCaptureVideoPreviewLayer(session: session)
+        layer.videoGravity = .resizeAspectFill
+        view.layer.insertSublayer(layer, at: 0)
+        previewLayer = layer
+        resizePreview()
+        isConfigured = true
+        DispatchQueue.global(qos: .userInitiated).async { [session] in
+            if !session.isRunning { session.startRunning() }
         }
-        
-        let previewLayer =
-            AVCaptureVideoPreviewLayer(
-                session: session
-            )
-        
-        previewLayer.videoGravity =
-            .resizeAspectFill
-        
-        previewLayer.frame =
-            view.layer.bounds
-        
-        view.layer.addSublayer(previewLayer)
-        
-        session.startRunning()
     }
-    
-    func metadataOutput(
-        _ output: AVCaptureMetadataOutput,
-        didOutput metadataObjects: [AVMetadataObject],
-        from connection: AVCaptureConnection
-    ) {
-        
-        guard !hasScanned else {
-            return
-        }
-        
-        guard let object = metadataObjects.first as?
-                AVMetadataMachineReadableCodeObject,
-              let value = object.stringValue else {
-            return
-        }
-        
+
+    func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
+        guard !hasScanned,
+              let object = metadataObjects.first as? AVMetadataMachineReadableCodeObject,
+              let code = object.stringValue else { return }
         hasScanned = true
-        
-        onCodeScanned?(value)
-        
-        session.stopRunning()
+        onCodeScanned?(code)
+        stopCamera()
     }
 }
-
-
