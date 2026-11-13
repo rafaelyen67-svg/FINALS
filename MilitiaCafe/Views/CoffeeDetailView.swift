@@ -1,5 +1,69 @@
 import SwiftUI
 
+struct CoffeeDetailView: View {
+    let coffee: Coffee
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                ZStack(alignment: .bottomLeading) {
+                    CoffeeProductImage(name: coffee.imageName)
+                        .frame(height: 270)
+                        .clipped()
+                    LinearGradient(
+                        colors: [.clear, .black.opacity(0.5)],
+                        startPoint: .center,
+                        endPoint: .bottom
+                    )
+                    Text("BREWED WITH CARE")
+                        .font(.caption.weight(.bold))
+                        .tracking(2)
+                        .foregroundStyle(.white)
+                        .padding(18)
+                }
+                .frame(height: 270)
+                .clipShape(RoundedRectangle(cornerRadius: 24))
+
+                Text(coffee.name)
+                    .font(.system(size: 32, weight: .bold, design: .serif))
+                    .foregroundStyle(AppTheme.espresso)
+
+                Text(coffee.description)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+
+                HStack {
+                    Label("Made fresh to order", systemImage: "sparkles")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(AppTheme.sage)
+                    Spacer()
+                    Text("₱\(coffee.basePrice, specifier: "%.0f")")
+                        .font(.title2.bold())
+                        .foregroundStyle(AppTheme.brown)
+                }
+
+                NavigationLink {
+                    CoffeeCustomizationView(coffee: coffee)
+                } label: {
+                    HStack {
+                        Text("Customize your cup")
+                        Spacer()
+                        Image(systemName: "arrow.right")
+                    }
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .padding(17)
+                    .background(AppTheme.brown)
+                    .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+            }
+            .padding(20)
+        }
+        .background(AppTheme.paper.ignoresSafeArea())
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
 struct CoffeeProductImage: View {
     let name: String
 
@@ -7,7 +71,6 @@ struct CoffeeProductImage: View {
         GeometryReader { proxy in
             ZStack {
                 AppTheme.cream
-
                 let resolvedName = CoffeeAssetResolver.resolvedName(for: name)
                 Image(resolvedName)
                     .resizable()
@@ -35,7 +98,7 @@ private enum CoffeeAssetResolver {
     static func resolvedName(for rawName: String) -> String {
         let cleaned = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
         switch cleaned.lowercased() {
-        case "americano", " american", " americano", " americana":
+        case "americano", "americana":
             return "americano"
         case "latte", "militia latte":
             return "latte"
