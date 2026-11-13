@@ -1,45 +1,22 @@
-//
-//  LoginController.swift
-//  MilitiaCafe
-//
-//  Created by Mac-LAB on 9/17/26.
-//
 import Foundation
 import Combine
 
+@MainActor
 class LoginController: ObservableObject {
-    
     @Published var currentCustomer: Customer?
     @Published var currentAdmin: Admin?
     @Published var isLoggedIn = false
     @Published var errorMessage = ""
-    enum LoginStage { case welcome, roleSelection, credentials }
-    @Published var stage: LoginStage = .welcome
+    @Published var stage: LoginStage = .roleSelection
     @Published var selectedRole: UserRole = .none
-    
-    // UI helpers
-    var showRoleSelection: Bool { stage == .roleSelection }
-    var showCredentials: Bool { stage == .credentials }
+
+    enum LoginStage { case welcome, roleSelection, credentials }
+    enum UserRole { case none, customer, admin }
+
     var isCustomerSelected: Bool { selectedRole == .customer }
     var isAdminSelected: Bool { selectedRole == .admin }
-    
-    enum UserRole { case none, customer, admin }
-    var userRole: UserRole {
-        if currentAdmin != nil { return .admin }
-        if currentCustomer != nil { return .customer }
-        return .none
-    }
-    
-    init(autoStart: Bool = true) {
-        if autoStart {
-            // Immediately present role selection so the user can choose.
-            self.stage = .roleSelection
-        }
-    }
-    
-    // MARK: - Flow control
+
     func start() {
-        // Called when user taps "Get Started"
         errorMessage = ""
         stage = .roleSelection
         selectedRole = .none
@@ -51,62 +28,52 @@ class LoginController: ObservableObject {
         stage = .credentials
     }
 
-    func resetFlow() {
-        errorMessage = ""
-        stage = .roleSelection
-        selectedRole = .none
-    }
-    
-    func login(
-        email: String,
-        password: String
-    ) {
-        
-        if email.isEmpty || password.isEmpty {
-            errorMessage = "Please enter your email and password."
+    func resetFlow() { start() }
+
+    func login(email: String, password: String) {
+        guard selectedRole == .customer else {
+            errorMessage = "Choose Customer to sign in."
             return
         }
-        
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard normalizedEmail.contains("@"), !password.isEmpty else {
+            errorMessage = "Enter a valid email address and password."
+            return
+        }
         currentAdmin = nil
-        currentCustomer = Customer(
-            name: "Rafael",
-            email: email,
-            phone: ""
-        )
-        
+        currentCustomer = Customer(name: customerName(from: normalizedEmail), email: normalizedEmail, phone: "")
         isLoggedIn = true
         errorMessage = ""
-        stage = .roleSelection
     }
-    
+
     func loginAsAdmin(email: String, password: String) {
-        if email.isEmpty || password.isEmpty {
-            errorMessage = "Please enter your email and password."
-            return
-        }
-        // Simple placeholder admin check. Replace with real authentication later.
-        let allowedAdmins: [String: String] = [
-            "admin@militiacafe.com": "letmein",
-            "owner@militiacafe.com": "ownerpass"
-        ]
-        guard let expected = allowedAdmins[email.lowercased()], expected == password else {
-            errorMessage = "Invalid admin credentials."
+        let allowedAdmins = ["admin@militiacafe.com": "letmein"]
+        let normalizedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard let expected = allowedAdmins[normalizedEmail], expected == password else {
+            errorMessage = "Admin email or password is incorrect."
             isLoggedIn = false
             currentAdmin = nil
             return
         }
         currentCustomer = nil
-        currentAdmin = Admin(name: "Administrator", email: email)
+        currentAdmin = Admin(name: "Café Admin", email: normalizedEmail)
         isLoggedIn = true
         errorMessage = ""
-        stage = .roleSelection
     }
-    
+
     func logout() {
         currentAdmin = nil
         currentCustomer = nil
         isLoggedIn = false
-        stage = .roleSelection
+        start()
+    }
+
+    private func customerName(from email: String) -> String {
+        let firstPart = email.split(separator: "@").first.map(String.init) ?? "Coffee Lover"
+        return firstPart.replacingOccurrences(of: ".", with: " ")
+            .split(separator: " ")
+            .map { $0.capitalized }
+            .joined(separator: " ")
     }
 }
 

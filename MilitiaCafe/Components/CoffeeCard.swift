@@ -1,59 +1,43 @@
-//
-//  CoffeeCard.swift
-//  MilitiaCafe
-//
-//  Created by Mac-LAB on 9/17/26.
-//
-
 import SwiftUI
 
 struct CoffeeCard: View {
-    
     let coffee: Coffee
-    
+
     var body: some View {
-        HStack(spacing: 15) {
-            
+        HStack(spacing: 14) {
             Image(coffee.imageName)
                 .resizable()
                 .scaledToFill()
-                .frame(width: 95, height: 95)
-                .clipShape(
-                    RoundedRectangle(cornerRadius: 16)
-                )
-            
+                .frame(width: 88, height: 88)
+                .background(AppTheme.cream)
+                .clipShape(RoundedRectangle(cornerRadius: 17))
+                .overlay {
+                    if UIImage(named: coffee.imageName) == nil {
+                        Image(systemName: "cup.and.saucer.fill")
+                            .font(.title2)
+                            .foregroundStyle(AppTheme.gold)
+                    }
+                }
+
             VStack(alignment: .leading, spacing: 6) {
-                
                 Text(coffee.name)
-                    .font(
-                        .system(
-                            size: 20,
-                            weight: .bold,
-                            design: .serif
-                        )
-                    )
-                    .foregroundStyle(AppTheme.brown)
-                
+                    .font(.system(size: 19, weight: .bold, design: .serif))
+                    .foregroundStyle(AppTheme.espresso)
                 Text(coffee.description)
-                    .font(.subheadline)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(2)
-                
                 Text("₱\(coffee.basePrice, specifier: "%.0f")")
-                    .font(.headline)
+                    .font(.subheadline.weight(.bold))
                     .foregroundStyle(AppTheme.brown)
             }
-            
-            Spacer()
-            
-            Image(systemName: "chevron.right")
-                .foregroundStyle(AppTheme.brown)
+            Spacer(minLength: 0)
+            Image(systemName: "arrow.up.right")
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AppTheme.gold)
         }
-        .padding()
+        .padding(12)
         .background(.white)
-        .clipShape(
-            RoundedRectangle(cornerRadius: 20)
-        )
+        .clipShape(AppTheme.cardShape)
     }
 }
-

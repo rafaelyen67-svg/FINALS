@@ -1,46 +1,13 @@
-//
-//  AppTheme.swift
-//  MilitiaCafe
-//
-//  Created by Mac-LAB on 9/17/26.
-//
-
-
 import SwiftUI
 
 struct AppTheme {
-    
-    static let cream = Color(
-        red: 0.98,
-        green: 0.95,
-        blue: 0.90
-    )
-    
-    static let brown = Color(
-        red: 0.42,
-        green: 0.27,
-        blue: 0.20
-    )
-    
-    static let espresso = Color(
-        red: 0.20,
-        green: 0.14,
-        blue: 0.11
-    )
-    
-    static let gold = Color(
-        red: 0.84,
-        green: 0.66,
-        blue: 0.37
-    )
-    
-    static let pink = Color(
-        red: 0.91,
-        green: 0.72,
-        blue: 0.68
-    )
+    static let cream = Color(red: 0.97, green: 0.94, blue: 0.88)
+    static let paper = Color(red: 1.00, green: 0.99, blue: 0.96)
+    static let brown = Color(red: 0.36, green: 0.22, blue: 0.15)
+    static let espresso = Color(red: 0.17, green: 0.11, blue: 0.08)
+    static let gold = Color(red: 0.79, green: 0.58, blue: 0.31)
+    static let sage = Color(red: 0.30, green: 0.43, blue: 0.32)
+    static let pink = Color(red: 0.91, green: 0.72, blue: 0.68)
+
+    static let cardShape = RoundedRectangle(cornerRadius: 22, style: .continuous)
 }
-    
-
-
-

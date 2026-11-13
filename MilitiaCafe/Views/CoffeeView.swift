@@ -1,44 +1,36 @@
 import SwiftUI
 
 struct CoffeeView: View {
-    
-    @StateObject private var coffeeController = CoffeeController()
-    
+    @EnvironmentObject private var coffeeController: CoffeeController
+
     var body: some View {
-        
         ScrollView {
-            
             VStack(alignment: .leading, spacing: 18) {
-                
-                Text("Our Coffee")
-                    .font(
-                        .system(
-                            size: 32,
-                            weight: .bold,
-                            design: .serif
-                        )
-                    )
-                    .foregroundStyle(AppTheme.brown)
-                
-                Text("A little comfort, anytime.")
-                    .foregroundStyle(.secondary)
-                
-                ForEach(coffeeController.coffees) { coffee in
-                    
-                    NavigationLink {
-                        CoffeeDetailView(coffee: coffee)
-                    } label: {
-                        CoffeeCard(coffee: coffee)
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Made for your moment.")
+                        .font(.system(size: 30, weight: .bold, design: .serif))
+                        .foregroundStyle(AppTheme.espresso)
+                    Text("Small-batch favorites, brewed with care.")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.bottom, 4)
+
+                if coffeeController.availableCoffees.isEmpty {
+                    ContentUnavailableView("The bar is resting", systemImage: "cup.and.saucer", description: Text("Please check back soon for available coffee."))
+                        .padding(.top, 40)
+                } else {
+                    ForEach(coffeeController.availableCoffees) { coffee in
+                        NavigationLink { CoffeeDetailView(coffee: coffee) } label: {
+                            CoffeeCard(coffee: coffee)
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
                 }
             }
-            .padding()
+            .padding(20)
         }
-        .background(
-            AppTheme.cream
-                .ignoresSafeArea()
-        )
+        .background(AppTheme.paper.ignoresSafeArea())
         .navigationTitle("Coffee")
         .navigationBarTitleDisplayMode(.inline)
     }
