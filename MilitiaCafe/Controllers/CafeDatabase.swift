@@ -7,7 +7,7 @@ enum CafeDatabase {
     private static let directoryName = "MilitiaCafeDatabase"
     private static let lock = NSRecursiveLock()
 
-    static func load<Value: Decodable>(
+    static func load<Value: Codable>(
         _ type: Value.Type,
         from key: String,
         default fallback: Value
