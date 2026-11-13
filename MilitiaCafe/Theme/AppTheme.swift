@@ -9,5 +9,10 @@ struct AppTheme {
     static let sage = Color(red: 0.30, green: 0.43, blue: 0.32)
     static let pink = Color(red: 0.91, green: 0.72, blue: 0.68)
 
+    // Additional soft accents used by the customer profile screen.
+    static let blush = Color(red: 0.97, green: 0.86, blue: 0.82)
+    static let latte = Color(red: 0.94, green: 0.90, blue: 0.83)
+    static let stone = Color(red: 0.84, green: 0.84, blue: 0.81)
+
     static let cardShape = RoundedRectangle(cornerRadius: 22, style: .continuous)
 }
