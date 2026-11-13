@@ -21,12 +21,7 @@ final class CoffeeController: ObservableObject {
         let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !cleanName.isEmpty, price > 0 else { return }
         let resolvedImage = CoffeeAssetResolver.resolvedName(for: imageName)
-        let coffee = Coffee(
-            name: cleanName,
-            description: description.trimmingCharacters(in: .whitespacesAndNewlines),
-            basePrice: price,
-            imageName: resolvedImage
-        )
+        let coffee = Coffee(name: cleanName, description: description.trimmingCharacters(in: .whitespacesAndNewlines), basePrice: price, imageName: resolvedImage)
         coffees.insert(coffee, at: 0)
         save()
     }
@@ -45,33 +40,11 @@ final class CoffeeController: ObservableObject {
 
     private static let sampleMenu: [Coffee] = [
         Coffee(name: "Militia Latte", description: "Silky espresso, steamed milk, and a little comfort.", basePrice: 145, imageName: "latte"),
-        Coffee(name: "Americano", description: "Bold, smooth, and freshly brewed.", basePrice: 120, imageName: "americano"),
+        Coffee(name: "Americano", description: "Bold, smooth, and freshly brewed.", basePrice: 120, imageName: " americano"),
         Coffee(name: "Cappuccino", description: "Rich espresso finished with soft milk foam.", basePrice: 140, imageName: "cappuccino"),
         Coffee(name: "Espresso", description: "A short, intense shot with a beautiful crema.", basePrice: 100, imageName: "espresso"),
         Coffee(name: "Caramel Macchiato", description: "Sweet caramel layered over smooth espresso.", basePrice: 160, imageName: "latte"),
         Coffee(name: "Mocha", description: "A cozy meeting of chocolate and coffee.", basePrice: 155, imageName: "mocha"),
         Coffee(name: "Spanish Latte", description: "Creamy, sweet, and made for slow mornings.", basePrice: 150, imageName: "latte")
     ]
-}
-
-private enum CoffeeAssetResolver {
-    static func resolvedName(for rawName: String) -> String {
-        let cleaned = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
-        switch cleaned.lowercased() {
-        case "americano", " american", " americano", " americana":
-            return "americano"
-        case "latte", "militia latte":
-            return "latte"
-        case "cappuccino":
-            return "cappuccino"
-        case "espresso":
-            return "espresso"
-        case "mocha":
-            return "mocha"
-        case "coffee menu":
-            return "coffee menu"
-        default:
-            return cleaned.isEmpty ? "latte" : cleaned
-        }
-    }
 }

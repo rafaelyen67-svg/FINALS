@@ -5,7 +5,9 @@ struct AdminView: View {
     let admin: Admin?
     @EnvironmentObject private var coffeeController: CoffeeController
     @EnvironmentObject private var orderController: OrderController
+    @EnvironmentObject private var loginController: LoginController
     @State private var showingNewCoffee = false
+    @State private var showingLogoutConfirmation = false
 
     private var availableCount: Int { coffeeController.availableCoffees.count }
 
@@ -26,7 +28,21 @@ struct AdminView: View {
         .background(AppTheme.paper.ignoresSafeArea())
         .navigationTitle("Café studio")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbarColorScheme(.light, for: .navigationBar)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingLogoutConfirmation = true
+                } label: {
+                    Image(systemName: "rectangle.portrait.and.arrow.right")
+                        .foregroundStyle(AppTheme.brown)
+                }
+                .accessibilityLabel("Log out")
+            }
+        }
+        .confirmationDialog("Log out of the admin workspace?", isPresented: $showingLogoutConfirmation, titleVisibility: .visible) {
+            Button("Log out", role: .destructive) { loginController.logout() }
+            Button("Stay signed in", role: .cancel) { }
+        }
         .sheet(isPresented: $showingNewCoffee) {
             NewCoffeeView { name, description, price, imageName in
                 coffeeController.addCoffee(name: name, description: description, price: price, imageName: imageName)
@@ -82,9 +98,7 @@ struct AdminView: View {
     }
 
     private var scannerCard: some View {
-        NavigationLink {
-            QRScannerView()
-        } label: {
+        NavigationLink { QRScannerView() } label: {
             HStack(spacing: 15) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16).fill(.white.opacity(0.15))
@@ -94,17 +108,11 @@ struct AdminView: View {
                 }
                 .frame(width: 53, height: 53)
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Scan a pickup QR")
-                        .font(.headline)
-                        .foregroundStyle(.white)
-                    Text("Verify customer orders at the counter")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.72))
+                    Text("Scan a pickup QR").font(.headline).foregroundStyle(.white)
+                    Text("Verify customer orders at the counter").font(.caption).foregroundStyle(.white.opacity(0.72))
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "arrow.right")
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(AppTheme.gold)
+                Image(systemName: "arrow.right").font(.subheadline.weight(.bold)).foregroundStyle(AppTheme.gold)
             }
             .padding(17)
             .background(LinearGradient(colors: [AppTheme.brown, AppTheme.espresso], startPoint: .topLeading, endPoint: .bottomTrailing))
@@ -117,26 +125,18 @@ struct AdminView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Your coffee board")
-                        .font(.system(size: 23, weight: .bold, design: .serif))
-                        .foregroundStyle(AppTheme.espresso)
-                    Text("Post a drink or mark it sold out.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text("Your coffee board").font(.system(size: 23, weight: .bold, design: .serif)).foregroundStyle(AppTheme.espresso)
+                    Text("Post a drink or mark it sold out.").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Button { showingNewCoffee = true } label: {
                     Label("Add drink", systemImage: "plus")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 13)
-                        .padding(.vertical, 10)
-                        .background(AppTheme.brown)
-                        .clipShape(Capsule())
+                        .font(.caption.weight(.bold)).foregroundStyle(.white)
+                        .padding(.horizontal, 13).padding(.vertical, 10)
+                        .background(AppTheme.brown).clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
             }
-
             VStack(spacing: 0) {
                 ForEach(Array(coffeeController.coffees.enumerated()), id: \.element.id) { index, coffee in
                     HStack(spacing: 12) {
@@ -144,25 +144,18 @@ struct AdminView: View {
                             .frame(width: 56, height: 56)
                             .clipShape(RoundedRectangle(cornerRadius: 14))
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(coffee.name)
-                                .font(.subheadline.weight(.bold))
-                                .foregroundStyle(AppTheme.espresso)
+                            Text(coffee.name).font(.subheadline.weight(.bold)).foregroundStyle(AppTheme.espresso)
                             Text("₱\(coffee.basePrice, specifier: "%.0f") · \(coffee.isAvailable ? "On the menu" : "Sold out")")
-                                .font(.caption)
-                                .foregroundStyle(coffee.isAvailable ? AppTheme.sage : .secondary)
+                                .font(.caption).foregroundStyle(coffee.isAvailable ? AppTheme.sage : .secondary)
                         }
                         Spacer(minLength: 8)
                         Toggle("Available", isOn: Binding(
                             get: { coffeeController.coffees.first(where: { $0.id == coffee.id })?.isAvailable ?? false },
                             set: { coffeeController.setAvailability($0, for: coffee) }
-                        ))
-                        .labelsHidden()
-                        .tint(AppTheme.sage)
+                        )).labelsHidden().tint(AppTheme.sage)
                     }
                     .padding(12)
-                    if index < coffeeController.coffees.count - 1 {
-                        Divider().padding(.leading, 80)
-                    }
+                    if index < coffeeController.coffees.count - 1 { Divider().padding(.leading, 80) }
                 }
             }
             .background(.white)
@@ -174,57 +167,31 @@ struct AdminView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Recent orders")
-                        .font(.system(size: 23, weight: .bold, design: .serif))
-                        .foregroundStyle(AppTheme.espresso)
-                    Text("Pickup details at a glance.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    Text("Recent orders").font(.system(size: 23, weight: .bold, design: .serif)).foregroundStyle(AppTheme.espresso)
+                    Text("Pickup details at a glance.").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
-                Image(systemName: "takeoutbag.and.cup.and.straw.fill")
-                    .font(.title3)
-                    .foregroundStyle(AppTheme.gold)
+                Image(systemName: "takeoutbag.and.cup.and.straw.fill").font(.title3).foregroundStyle(AppTheme.gold)
             }
-
             if orderController.orders.isEmpty {
                 HStack(spacing: 12) {
                     Text("☕️").font(.title2)
-                    Text("No orders just yet. Your next happy customer is on the way!")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                    Text("No orders just yet. Your next happy customer is on the way!").font(.subheadline).foregroundStyle(.secondary)
                 }
-                .padding(16)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.white)
-                .clipShape(RoundedRectangle(cornerRadius: 19))
+                .padding(16).frame(maxWidth: .infinity, alignment: .leading).background(.white).clipShape(RoundedRectangle(cornerRadius: 19))
             } else {
                 ForEach(Array(orderController.orders.prefix(5))) { order in
-                    NavigationLink {
-                        OrderDetailView(order: order)
-                    } label: {
+                    NavigationLink { OrderDetailView(order: order) } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: "receipt")
-                                .foregroundStyle(AppTheme.brown)
-                                .frame(width: 42, height: 42)
-                                .background(AppTheme.cream)
-                                .clipShape(RoundedRectangle(cornerRadius: 13))
+                            Image(systemName: "receipt").foregroundStyle(AppTheme.brown).frame(width: 42, height: 42).background(AppTheme.cream).clipShape(RoundedRectangle(cornerRadius: 13))
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("#\(order.orderNumber) · \(order.customerName)")
-                                    .font(.subheadline.weight(.bold))
-                                    .foregroundStyle(AppTheme.espresso)
-                                Text("\(order.items.count) item(s) · \(order.status)")
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                Text("#\(order.orderNumber) · \(order.customerName)").font(.subheadline.weight(.bold)).foregroundStyle(AppTheme.espresso)
+                                Text("\(order.items.count) item(s) · \(order.status)").font(.caption).foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Text("₱\(order.total, specifier: "%.0f")")
-                                .font(.subheadline.weight(.bold))
-                                .foregroundStyle(AppTheme.brown)
+                            Text("₱\(order.total, specifier: "%.0f")").font(.subheadline.weight(.bold)).foregroundStyle(AppTheme.brown)
                         }
-                        .padding(13)
-                        .background(.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 17))
+                        .padding(13).background(.white).clipShape(RoundedRectangle(cornerRadius: 17))
                     }
                     .buttonStyle(.plain)
                 }
@@ -235,11 +202,8 @@ struct AdminView: View {
     private var footer: some View {
         HStack(spacing: 8) {
             Image(systemName: "heart.fill").foregroundStyle(AppTheme.pink)
-            Text("Good coffee. Good people. Good day.")
-                .font(.caption.weight(.medium))
-                .foregroundStyle(AppTheme.brown)
+            Text("Good coffee. Good people. Good day.").font(.caption.weight(.medium)).foregroundStyle(AppTheme.brown)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 9)
+        .frame(maxWidth: .infinity).padding(.vertical, 9)
     }
 }
