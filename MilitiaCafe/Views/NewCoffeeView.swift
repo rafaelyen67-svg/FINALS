@@ -9,8 +9,11 @@ struct NewCoffeeView: View {
     @State private var imageName = "latte"
 
     private let imageOptions: [(String, String)] = [
-        ("latte", "Latte"), (" americano", "Americano"), ("cappuccino", "Cappuccino"),
-        ("espresso", "Espresso"), ("mocha", "Mocha")
+        ("latte", "Latte"),
+        ("americano", "Americano"),
+        ("cappuccino", "Cappuccino"),
+        ("espresso", "Espresso"),
+        ("mocha", "Mocha")
     ]
     private var validPrice: Double? { Double(price) }
 
