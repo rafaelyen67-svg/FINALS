@@ -15,4 +15,12 @@ struct AppTheme {
     static let stone = Color(red: 0.84, green: 0.84, blue: 0.81)
 
     static let cardShape = RoundedRectangle(cornerRadius: 22, style: .continuous)
+
+    static func warmButtonGradient() -> LinearGradient {
+        LinearGradient(
+            colors: [brown, espresso],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }
