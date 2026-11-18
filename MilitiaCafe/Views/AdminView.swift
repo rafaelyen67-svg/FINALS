@@ -8,8 +8,28 @@ struct AdminView: View {
     @EnvironmentObject private var loginController: LoginController
     @State private var showingNewCoffee = false
     @State private var showingLogoutConfirmation = false
+    @State private var menuSearch = ""
+    @State private var menuFilter: MenuFilter = .all
+
+    private enum MenuFilter: String, CaseIterable {
+        case all = "All"
+        case available = "Available"
+        case soldOut = "Sold out"
+    }
 
     private var availableCount: Int { coffeeController.availableCoffees.count }
+    private var visibleCoffees: [Coffee] {
+        coffeeController.coffees.filter { coffee in
+            let matchesSearch = menuSearch.isEmpty || coffee.name.localizedCaseInsensitiveContains(menuSearch)
+            let matchesFilter: Bool
+            switch menuFilter {
+            case .all: matchesFilter = true
+            case .available: matchesFilter = coffee.isAvailable
+            case .soldOut: matchesFilter = !coffee.isAvailable
+            }
+            return matchesSearch && matchesFilter
+        }
+    }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -30,11 +50,8 @@ struct AdminView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showingLogoutConfirmation = true
-                } label: {
-                    Image(systemName: "rectangle.portrait.and.arrow.right")
-                        .foregroundStyle(AppTheme.brown)
+                Button { showingLogoutConfirmation = true } label: {
+                    Image(systemName: "rectangle.portrait.and.arrow.right").foregroundStyle(AppTheme.brown)
                 }
                 .accessibilityLabel("Log out")
             }
@@ -54,25 +71,17 @@ struct AdminView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Label("STAFF WORKSPACE", systemImage: "sparkles")
-                    .font(.caption2.weight(.bold))
-                    .tracking(1.5)
-                    .foregroundStyle(AppTheme.gold)
+                    .font(.caption2.weight(.bold)).tracking(1.5).foregroundStyle(AppTheme.gold)
                 Spacer()
                 Text("ADMIN")
-                    .font(.caption2.weight(.heavy))
-                    .tracking(1)
-                    .foregroundStyle(AppTheme.sage)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 6)
-                    .background(AppTheme.sage.opacity(0.12))
-                    .clipShape(Capsule())
+                    .font(.caption2.weight(.heavy)).tracking(1).foregroundStyle(AppTheme.sage)
+                    .padding(.horizontal, 10).padding(.vertical, 6)
+                    .background(AppTheme.sage.opacity(0.12)).clipShape(Capsule())
             }
             Text("Hello, \(admin?.name ?? "Barista")!")
-                .font(.system(size: 31, weight: .bold, design: .serif))
-                .foregroundStyle(AppTheme.espresso)
+                .font(.system(size: 31, weight: .bold, design: .serif)).foregroundStyle(AppTheme.espresso)
             Text("A little dashboard to keep the good coffee flowing.")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(.subheadline).foregroundStyle(.secondary)
         }
         .padding(.top, 8)
     }
@@ -91,10 +100,8 @@ struct AdminView: View {
             Text(value).font(.system(size: 25, weight: .bold, design: .serif)).foregroundStyle(AppTheme.espresso)
             Text(title).font(.system(size: 9, weight: .heavy)).tracking(0.7).foregroundStyle(.secondary).lineLimit(1)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(13)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .frame(maxWidth: .infinity, alignment: .leading).padding(13)
+        .background(.white).clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
     private var scannerCard: some View {
@@ -102,9 +109,7 @@ struct AdminView: View {
             HStack(spacing: 15) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 16).fill(.white.opacity(0.15))
-                    Image(systemName: "qrcode.viewfinder")
-                        .font(.system(size: 25, weight: .medium))
-                        .foregroundStyle(AppTheme.gold)
+                    Image(systemName: "qrcode.viewfinder").font(.system(size: 25, weight: .medium)).foregroundStyle(AppTheme.gold)
                 }
                 .frame(width: 53, height: 53)
                 VStack(alignment: .leading, spacing: 4) {
@@ -122,11 +127,11 @@ struct AdminView: View {
     }
 
     private var menuSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 13) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Your coffee board").font(.system(size: 23, weight: .bold, design: .serif)).foregroundStyle(AppTheme.espresso)
-                    Text("Post a drink or mark it sold out.").font(.caption).foregroundStyle(.secondary)
+                    Text("Keep your menu fresh and up to date.").font(.caption).foregroundStyle(.secondary)
                 }
                 Spacer()
                 Button { showingNewCoffee = true } label: {
@@ -137,29 +142,69 @@ struct AdminView: View {
                 }
                 .buttonStyle(.plain)
             }
-            VStack(spacing: 0) {
-                ForEach(Array(coffeeController.coffees.enumerated()), id: \.element.id) { index, coffee in
-                    HStack(spacing: 12) {
-                        CoffeeProductImage(name: coffee.imageName)
-                            .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: 14))
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(coffee.name).font(.subheadline.weight(.bold)).foregroundStyle(AppTheme.espresso)
-                            Text("₱\(coffee.basePrice, specifier: "%.0f") · \(coffee.isAvailable ? "On the menu" : "Sold out")")
-                                .font(.caption).foregroundStyle(coffee.isAvailable ? AppTheme.sage : .secondary)
-                        }
-                        Spacer(minLength: 8)
-                        Toggle("Available", isOn: Binding(
-                            get: { coffeeController.coffees.first(where: { $0.id == coffee.id })?.isAvailable ?? false },
-                            set: { coffeeController.setAvailability($0, for: coffee) }
-                        )).labelsHidden().tint(AppTheme.sage)
+
+            HStack(spacing: 9) {
+                Image(systemName: "magnifyingglass").foregroundStyle(AppTheme.gold)
+                TextField("Find a coffee", text: $menuSearch)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                if !menuSearch.isEmpty {
+                    Button { menuSearch = "" } label: {
+                        Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
                     }
-                    .padding(12)
-                    if index < coffeeController.coffees.count - 1 { Divider().padding(.leading, 80) }
+                    .accessibilityLabel("Clear search")
                 }
             }
-            .background(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
+            .padding(12).background(.white).clipShape(RoundedRectangle(cornerRadius: 14))
+
+            HStack(spacing: 8) {
+                ForEach(MenuFilter.allCases, id: \.self) { filter in
+                    Button { withAnimation(.easeInOut(duration: 0.18)) { menuFilter = filter } } label: {
+                        Text(filter.rawValue)
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(menuFilter == filter ? .white : AppTheme.brown)
+                            .padding(.horizontal, 13).padding(.vertical, 8)
+                            .background(menuFilter == filter ? AppTheme.brown : .white)
+                            .clipShape(Capsule())
+                    }
+                    .buttonStyle(.plain)
+                }
+                Spacer()
+                Text("\(visibleCoffees.count) drinks").font(.caption2.weight(.medium)).foregroundStyle(.secondary)
+            }
+
+            if visibleCoffees.isEmpty {
+                VStack(spacing: 8) {
+                    Text("☕️").font(.largeTitle)
+                    Text("No coffees found").font(.headline).foregroundStyle(AppTheme.espresso)
+                    Text("Try another search or filter.").font(.caption).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: .infinity).padding(22).background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(Array(visibleCoffees.enumerated()), id: \.element.id) { index, coffee in
+                        HStack(spacing: 12) {
+                            CoffeeProductImage(name: coffee.imageName)
+                                .frame(width: 56, height: 56)
+                                .clipShape(RoundedRectangle(cornerRadius: 14))
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(coffee.name).font(.subheadline.weight(.bold)).foregroundStyle(AppTheme.espresso)
+                                Text("₱\(coffee.basePrice, specifier: "%.0f") · \(coffee.isAvailable ? "On the menu" : "Sold out")")
+                                    .font(.caption).foregroundStyle(coffee.isAvailable ? AppTheme.sage : .secondary)
+                            }
+                            Spacer(minLength: 8)
+                            Toggle("Available", isOn: Binding(
+                                get: { coffeeController.coffees.first(where: { $0.id == coffee.id })?.isAvailable ?? false },
+                                set: { coffeeController.setAvailability($0, for: coffee) }
+                            )).labelsHidden().tint(AppTheme.sage)
+                        }
+                        .padding(12)
+                        if index < visibleCoffees.count - 1 { Divider().padding(.leading, 80) }
+                    }
+                }
+                .background(.white).clipShape(RoundedRectangle(cornerRadius: 21, style: .continuous))
+            }
         }
     }
 
